@@ -1,131 +1,119 @@
 # Cloud-Drive
 
-Online File Storage & Sharing System
+A secure, web-based file storage and sharing platform built with PHP, MySQL, HTML, and Bootstrap. Deployed on an AWS EC2 (Ubuntu) instance, this project demonstrates backend concepts like secure file handling, authentication, access control, and cloud deployment.
 
-A secure, web-based file storage and sharing platform built using PHP, MySQL, HTML, and Bootstrap, deployed on AWS EC2 (Ubuntu).
-This project demonstrates real-world backend concepts such as secure file handling, authentication, access control, and cloud deployment.
+## Table of contents
 
-🚀 Features
-User Features
+- Features
+  - User
+  - Admin
+- Tech stack
+- Project structure
+- Quickstart
+- Database
+- Security highlights
+- Deployment notes
+- Future enhancements
+- License
 
-User registration & login
+## Features
 
-Upload files securely
+### User
 
-Download owned files
+- Register and log in
+- Upload files securely
+- Download files you own
+- Create nested folders
+- Delete files
+- View storage usage
+- Share files using secure, token-based public links
 
-Create folders (nested support)
+### Admin
 
-Delete files
+- View all users
+- Monitor total storage usage and file counts
+- Inspect activity logs
+- Disable users (optional)
 
-View storage usage
+## Tech stack
 
-Share files using secure public links (token-based)
+- Frontend: HTML5, Bootstrap 5, JavaScript
+- Backend: PHP 8.x
+- Database: MySQL (InnoDB)
+- Server: Apache on Ubuntu 22.04
+- Cloud: AWS EC2
 
-Admin Features
+## Project structure (web root: /var/www/html)
 
-View all users
-
-Monitor storage usage
-
-View total files & activity
-
-Disable users (optional)
-
-🛠 Tech Stack
-Layer	Technology
-Frontend	HTML5, Bootstrap 5, JavaScript
-Backend	PHP 8.x
-Database	MySQL (InnoDB)
-Server	Apache
-OS	Ubuntu 22.04
-Cloud	AWS EC2
-🗂 Project Structure
 /var/www/html/
-│
-├── auth/           # Login, Register, Logout
-├── files/          # Upload, Download, Delete, Share
+
+├── auth/           # Login, register, logout
+├── files/          # Upload, download, delete, share
 ├── folders/        # Folder management
 ├── dashboard/      # User dashboard
 ├── admin/          # Admin dashboard
-├── config/         # Database config
-├── assets/         # CSS, JS
+├── config/         # Database and app config
+├── assets/         # CSS, JS, images
 └── index.php
 
-
-Private file storage (outside web root):
+Private file storage (stored outside the web root):
 
 /var/storage/files/
 
-🧱 Database Schema (Core Tables)
+## Quickstart
 
-users – authentication, roles, storage usage
+1. Clone the repo:
+   git clone https://github.com/IvinMathewAbraham/Cloud-Drive.git
+2. Configure your server (Ubuntu 22.04): Apache + PHP 8.x + MySQL
+3. Create a MySQL database and import the schema (see /config or schema files)
+4. Update database credentials in config (config/)
+5. Ensure private storage path exists and is writable by www-data:
+   sudo mkdir -p /var/storage/files && sudo chown -R www-data:www-data /var/storage/files
+6. Point your virtual host to /var/www/html and restart Apache
 
-folders – hierarchical folder structure
+## Database (core tables)
 
-files – file metadata (actual files stored on disk)
+- users – authentication, roles, storage usage
+- folders – hierarchical folder structure
+- files – file metadata (actual files stored on disk)
+- shared_links – secure public sharing tokens
+- file_activity – audit logs
 
-shared_links – secure public sharing tokens
+## Security highlights
 
-file_activity – audit logs
+- Files stored outside the public web root
+- Randomized stored filenames to avoid collisions and guessability
+- MIME type validation (server-side) — not extension-based only
+- File size limits enforced
+- Passwords hashed with password_hash()
+- Session-based authentication
+- Ownership checks on downloads to prevent IDOR
+- Prepared SQL statements (PDO) to avoid SQL injection
 
-🔐 Security Highlights
+## Deployment notes (AWS EC2)
 
-Files stored outside public web root
+- Ubuntu 22.04 EC2 instance
+- Apache + PHP 8.x, MySQL
+- Proper Linux permissions (www-data)
+- Security group rules: allow HTTP (80) and SSH (22) as needed
+- Designed to run on EC2; can be migrated to S3 for object storage later
 
-Randomized stored filenames
+## Why this project matters
 
-MIME type validation (not extension-based)
+- Real backend file-system handling (not just CRUD)
+- Cloud deployment experience
+- Security-first design and audit logging
+- Scalable architecture and a strong portfolio project
 
-File size limits
+## Future enhancements
 
-Password hashing (password_hash)
+- Chunked uploads for large files
+- File previews (PDF, images)
+- Trash & restore functionality
+- Per-user storage quotas
+- Encryption at rest
+- AWS S3 integration
 
-Session-based authentication
+## License
 
-Ownership checks on download (prevents IDOR)
-
-Prepared SQL statements (PDO)
-
-☁ Deployment (AWS EC2)
-
-Ubuntu 22.04 EC2 instance
-
-Apache + PHP 8.x
-
-MySQL
-
-Proper Linux permissions (www-data)
-
-Security Groups allowing HTTP (80) & SSH (22)
-
-This project is designed to run entirely on EC2, with the option to later migrate storage to AWS S3.
-
-📈 Why This Project Matters
-
-✔ Real backend file system handling
-✔ Cloud deployment experience
-✔ Security-first design
-✔ Scalable architecture
-✔ Portfolio & interview ready
-
-This is not a demo CRUD app—it mirrors how real cloud storage systems work internally.
-
-🔮 Future Enhancements
-
-Chunked uploads for large files
-
-File previews (PDF / images)
-
-Trash & restore feature
-
-Storage quotas per user
-
-File encryption at rest
-
-AWS S3 integration
-
-📄 License
-
-This project is for learning and portfolio purposes.
-Feel free to fork and extend.
+This project is provided for learning and portfolio use. Feel free to fork and extend.
