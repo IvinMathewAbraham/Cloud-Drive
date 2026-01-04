@@ -105,9 +105,9 @@ if ($rate_limit) {
 }
 $stmt->execute();
 
-// Make sure is_encrypted is set to 0 or 1 (not an empty string)
-$is_encrypted = isset($is_encrypted) && $is_encrypted !== '' ? (int)$is_encrypted : 0;
-$stmt->execute();
+// Ensure is_encrypted is an integer
+$is_encrypted = isset($_POST['encrypt']) ? 1 : 0;  // Convert to int
+$stmt->bind_param("ssissi", $filename, $file_path, $file_size, $is_encrypted, $user_id); // Correct binding
 
 echo json_encode(['success' => true, 'message' => 'File uploaded successfully']);
 
