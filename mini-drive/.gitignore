@@ -1,2 +1,21 @@
-env
-/uploads
+# Environment files
+.env
+.env.*
+!/env.example
+
+# Uploads (user-generated content)
+/uploads/
+/uploads/**
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Dependencies / cache
+node_modules/
+vendor/
