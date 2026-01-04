@@ -186,29 +186,46 @@
         </div>
 
         <!-- Upload Area -->
-        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <div id="uploadArea" class="border-4 border-dashed border-purple-300 rounded-2xl p-12 text-center cursor-pointer hover:bg-purple-50 transition-all duration-300 bg-gradient-light">
-                <i class="fas fa-cloud-upload-alt text-6xl text-purple-500 mb-4 block"></i>
-                <h3 class="text-2xl font-bold text-gray-800 mb-2">Drop files here or click to upload</h3>
-                <p class="text-gray-600 text-sm mb-4">
-                    <i class="fas fa-info-circle"></i> 
-                    Max file size: 10MB | Max uploads per hour: 20
-                </p>
-                <p class="text-gray-500 text-xs">Supports all file types • Automatic encryption for large files</p>
-                <input type="file" id="fileInput" multiple hidden>
-            </div>
+<div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+    <div id="uploadArea"
+         class="border-4 border-dashed border-purple-300 rounded-2xl
+                p-8 text-center cursor-pointer
+                hover:bg-purple-50 transition-all duration-300
+                bg-gradient-light">
 
-            <!-- Upload Progress -->
-            <div id="uploadProgress" class="mt-6 hidden">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-gray-700 font-semibold">Uploading...</p>
-                    <span id="uploadPercent" class="text-sm font-bold text-purple-600">0%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                    <div id="progressBar" class="bg-gradient h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
-                </div>
+        <i class="fas fa-cloud-upload-alt text-4xl text-purple-500 mb-3 block"></i>
+
+        <h3 class="text-xl font-bold text-gray-800 mb-1">
+            Drop files here or click to upload
+        </h3>
+
+        <p class="text-gray-600 text-xs mb-3">
+            <i class="fas fa-info-circle"></i>
+            Max file size: 10MB | Max uploads per hour: 20
+        </p>
+
+        <p class="text-gray-500 text-[11px]">
+            Supports all file types • Automatic encryption for large files
+        </p>
+
+        <input type="file" id="fileInput" multiple hidden>
+    </div>
+
+    <!-- Upload Progress -->
+    <div id="uploadProgress" class="mt-4 hidden">
+        <div class="flex items-center justify-between mb-1">
+            <p class="text-gray-700 font-semibold text-sm">Uploading...</p>
+            <span id="uploadPercent" class="text-sm font-bold text-purple-600">0%</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div id="progressBar"
+                 class="bg-gradient h-2 rounded-full transition-all duration-300"
+                 style="width: 0%">
             </div>
         </div>
+    </div>
+</div>
+
 
         <!-- Files List -->
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
