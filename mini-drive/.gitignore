@@ -19,3 +19,6 @@ Thumbs.db
 # Dependencies / cache
 node_modules/
 vendor/
+
+
+/uploads
