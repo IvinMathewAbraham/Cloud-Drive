@@ -230,10 +230,23 @@
         <!-- Files List -->
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
             <!-- Header -->
-            <div class="px-6 py-4 border-b border-gray-100 bg-gradient-light flex items-center space-x-3">
-                <i class="fas fa-list text-purple-600 text-xl"></i>
-                <h2 class="text-xl font-bold text-gray-800">Your Files</h2>
-                <span class="ml-auto bg-white px-3 py-1 rounded-full text-sm font-semibold text-gray-600"><?php echo count($files); ?> files</span>
+            <div class="px-6 py-4 border-b border-gray-100 bg-gradient-light">
+                <div class="flex items-center space-x-3 mb-4">
+                    <i class="fas fa-list text-purple-600 text-xl"></i>
+                    <h2 class="text-xl font-bold text-gray-800">Your Files</h2>
+                    <span class="ml-auto bg-white px-3 py-1 rounded-full text-sm font-semibold text-gray-600"><?php echo count($files); ?> files</span>
+                </div>
+                <!-- Search Bar -->
+                <div class="relative">
+                    <input type="text" id="fileSearch" placeholder="Search files by name..." 
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+                           autocomplete="off">
+                    <i class="fas fa-search absolute right-3 top-3.5 text-gray-400"></i>
+                </div>
+                <div class="mt-2 text-xs text-gray-500 flex items-center space-x-2">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="searchResultCount">Showing <?php echo count($files); ?> files</span>
+                </div>
             </div>
 
             <?php if (empty($files)): ?>
@@ -581,6 +594,70 @@
             `;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 3000);
+        }
+
+        // File Search Functionality
+        const fileSearch = document.getElementById('fileSearch');
+        const searchResultCount = document.getElementById('searchResultCount');
+        const tableBody = document.querySelector('tbody');
+
+        if (fileSearch && tableBody) {
+            fileSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                const rows = tableBody.querySelectorAll('tr');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    // Get the filename from the first cell
+                    const filenameCell = row.querySelector('td');
+                    const filename = filenameCell ? filenameCell.textContent.toLowerCase() : '';
+
+                    // Show or hide row based on search term
+                    if (searchTerm === '' || filename.includes(searchTerm)) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Update result count
+                if (searchTerm === '') {
+                    searchResultCount.textContent = `Showing <?php echo count($files); ?> files`;
+                } else {
+                    searchResultCount.textContent = `Found ${visibleCount} of <?php echo count($files); ?> files`;
+                }
+
+                // Show "no results" message if needed
+                if (visibleCount === 0 && searchTerm !== '') {
+                    if (!document.getElementById('noSearchResults')) {
+                        const noResults = document.createElement('tr');
+                        noResults.id = 'noSearchResults';
+                        noResults.innerHTML = `
+                            <td colspan="5" class="px-6 py-8 text-center">
+                                <i class="fas fa-search text-4xl text-gray-300 mb-3 block"></i>
+                                <p class="text-gray-600 font-semibold">No files match "${escapeHtml(searchTerm)}"</p>
+                                <p class="text-gray-500 text-sm mt-2">Try a different search term</p>
+                            </td>
+                        `;
+                        tableBody.appendChild(noResults);
+                    }
+                } else {
+                    // Remove "no results" message if it exists
+                    const noResults = document.getElementById('noSearchResults');
+                    if (noResults) {
+                        noResults.remove();
+                    }
+                }
+            });
+
+            // Clear search when pressing Escape
+            fileSearch.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    this.value = '';
+                    this.dispatchEvent(new Event('input'));
+                }
+            });
         }
     </script>
 </body>
