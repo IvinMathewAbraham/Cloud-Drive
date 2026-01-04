@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com;">
     <title>Dashboard - MiniDrive</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -271,7 +272,7 @@
                             <?php foreach ($files as $file): ?>
                                 <tr class="file-row border-b border-gray-100 hover:bg-gray-50">
                                     <td class="px-6 py-4">
-                                        <div class="flex items-center space-x-3 cursor-pointer" onclick="previewFile(<?php echo $file['id']; ?>, '<?php echo htmlspecialchars($file['original_filename']); ?>')">
+                                        <div class="flex items-center space-x-3 cursor-pointer file-preview-click" data-file-id="<?php echo $file['id']; ?>" data-file-name="<?php echo htmlspecialchars($file['original_filename']); ?>">
                                             <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                                                 <i class="fas fa-file text-purple-600"></i>
                                             </div>
@@ -298,16 +299,16 @@
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex items-center justify-end space-x-2">
-                                            <button onclick="previewFile(<?php echo $file['id']; ?>, '<?php echo htmlspecialchars($file['original_filename']); ?>')" class="btn-icon-hover p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg" title="Preview">
+                                            <button class="btn-icon-hover p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg file-preview-btn" data-file-id="<?php echo $file['id']; ?>" data-file-name="<?php echo htmlspecialchars($file['original_filename']); ?>" title="Preview">
                                                 <i class="fas fa-eye text-lg"></i>
                                             </button>
                                             <a href="download.php?id=<?php echo $file['id']; ?>" class="btn-icon-hover p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Download">
                                                 <i class="fas fa-download text-lg"></i>
                                             </a>
-                                            <button onclick="openShareModal(<?php echo $file['id']; ?>)" class="btn-icon-hover p-2 text-green-600 hover:bg-green-50 rounded-lg" title="Share">
+                                            <button class="btn-icon-hover p-2 text-green-600 hover:bg-green-50 rounded-lg file-share-btn" data-file-id="<?php echo $file['id']; ?>" title="Share">
                                                 <i class="fas fa-share-alt text-lg"></i>
                                             </button>
-                                            <button onclick="deleteFile(<?php echo $file['id']; ?>)" class="btn-icon-hover p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Delete">
+                                            <button class="btn-icon-hover p-2 text-red-600 hover:bg-red-50 rounded-lg file-delete-btn" data-file-id="<?php echo $file['id']; ?>" title="Delete">
                                                 <i class="fas fa-trash-alt text-lg"></i>
                                             </button>
                                         </div>
@@ -322,14 +323,14 @@
     </div>
 
     <!-- Preview Modal -->
-    <div id="previewModal" class="modal-backdrop modal-hidden" onclick="closePreviewModal(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
+    <div id="previewModal" class="modal-backdrop modal-hidden">
+        <div class="modal-content">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-light">
                 <h3 class="text-lg font-bold text-gray-800 flex items-center space-x-2">
                     <i class="fas fa-eye text-purple-600"></i>
                     <span>File Preview</span>
                 </h3>
-                <button onclick="closePreviewModal()" class="text-gray-500 hover:text-gray-700 text-xl">
+                <button id="closePreviewBtn" class="text-gray-500 hover:text-gray-700 text-xl">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -352,19 +353,19 @@
     </div>
 
     <!-- Share Modal -->
-    <div id="shareModal" class="modal-backdrop modal-hidden" onclick="closeShareModal(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
+    <div id="shareModal" class="modal-backdrop modal-hidden">
+        <div class="modal-content">
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-light">
                 <h3 class="text-lg font-bold text-gray-800 flex items-center space-x-2">
                     <i class="fas fa-share-alt text-green-600"></i>
                     <span>Share File</span>
                 </h3>
-                <button onclick="closeShareModal()" class="text-gray-500 hover:text-gray-700 text-xl">
+                <button id="closeShareBtn" class="text-gray-500 hover:text-gray-700 text-xl">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="p-6">
-                <form onsubmit="handleShare(event)" class="space-y-4">
+                <form id="shareForm" class="space-y-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             <i class="fas fa-envelope text-green-600 mr-2"></i>
@@ -393,7 +394,7 @@
                             <i class="fas fa-check"></i>
                             <span>Share File</span>
                         </button>
-                        <button type="button" onclick="closeShareModal()" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200 transition">
+                        <button type="button" id="cancelShareBtn" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200 transition">
                             Cancel
                         </button>
                     </div>
@@ -405,12 +406,21 @@
     <script>
         let currentFileId = null;
 
+        // DOM Elements
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const uploadProgress = document.getElementById('uploadProgress');
         const progressBar = document.getElementById('progressBar');
         const uploadPercent = document.getElementById('uploadPercent');
+        const previewModal = document.getElementById('previewModal');
+        const shareModal = document.getElementById('shareModal');
+        const previewContent = document.getElementById('previewContent');
+        const closePreviewBtn = document.getElementById('closePreviewBtn');
+        const closeShareBtn = document.getElementById('closeShareBtn');
+        const cancelShareBtn = document.getElementById('cancelShareBtn');
+        const shareForm = document.getElementById('shareForm');
 
+        // Upload handlers
         uploadArea.addEventListener('click', () => fileInput.click());
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -427,6 +437,47 @@
         fileInput.addEventListener('change', (e) => {
             handleFiles(e.target.files);
         });
+
+        // Modal handlers - Close on backdrop click
+        previewModal.addEventListener('click', (e) => {
+            if (e.target.id === 'previewModal') {
+                closePreviewModal();
+            }
+        });
+        shareModal.addEventListener('click', (e) => {
+            if (e.target.id === 'shareModal') {
+                closeShareModal();
+            }
+        });
+
+        // Close modal buttons
+        closePreviewBtn.addEventListener('click', closePreviewModal);
+        closeShareBtn.addEventListener('click', closeShareModal);
+        cancelShareBtn.addEventListener('click', closeShareModal);
+
+        // File preview button listeners
+        document.addEventListener('click', (e) => {
+            const previewBtn = e.target.closest('.file-preview-btn, .file-preview-click');
+            if (previewBtn) {
+                const fileId = previewBtn.dataset.fileId;
+                const fileName = previewBtn.dataset.fileName;
+                previewFile(fileId, fileName);
+            }
+
+            const shareBtn = e.target.closest('.file-share-btn');
+            if (shareBtn) {
+                currentFileId = shareBtn.dataset.fileId;
+                openShareModal(currentFileId);
+            }
+
+            const deleteBtn = e.target.closest('.file-delete-btn');
+            if (deleteBtn) {
+                deleteFile(deleteBtn.dataset.fileId);
+            }
+        });
+
+        // Share form submission
+        shareForm.addEventListener('submit', handleShare);
 
         function handleFiles(files) {
             for (let file of files) {
@@ -522,21 +573,18 @@
             return text.replace(/[&<>"']/g, m => map[m]);
         }
 
-        function closePreviewModal(event) {
-            if (event && event.target.id !== 'previewModal') return;
-            document.getElementById('previewModal').classList.add('modal-hidden');
+        function closePreviewModal() {
+            previewModal.classList.add('modal-hidden');
         }
 
         function openShareModal(fileId) {
-            currentFileId = fileId;
-            document.getElementById('shareModal').classList.remove('modal-hidden');
+            shareModal.classList.remove('modal-hidden');
             document.getElementById('shareEmail').value = '';
             document.getElementById('sharePermission').value = 'viewer';
         }
 
-        function closeShareModal(event) {
-            if (event && event.target.id !== 'shareModal') return;
-            document.getElementById('shareModal').classList.add('modal-hidden');
+        function closeShareModal() {
+            shareModal.classList.add('modal-hidden');
             currentFileId = null;
         }
 
