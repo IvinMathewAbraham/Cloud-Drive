@@ -13,12 +13,7 @@
 - Solved Papers  
 
 The system is built using **HTML, Bootstrap, Core PHP, and MySQL**, and is designed to be deployed on an **AWS EC2 instance running Ubuntu**.  
-It follows a **REST-style API architecture** and implements **complete CRUD functionality**.
-
-This project is suitable for:
-- Final year academic projects  
-- Portfolio projects  
-- Viva / interview demonstrations  
+It follows a **REST-style API architecture** and implements **complete CRUD functionality**.  
 
 ---
 
