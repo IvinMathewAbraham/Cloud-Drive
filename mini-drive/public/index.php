@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com;">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src-elem 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; style-src-elem https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; default-src 'self';">
     <title>Dashboard - MiniDrive</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
@@ -239,6 +239,7 @@
                 </div>
                 <!-- Search Bar -->
                 <div class="relative">
+                    <label for="fileSearch" class="sr-only">Search files by name</label>
                     <input type="text" id="fileSearch" placeholder="Search files by name..." 
                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
                            autocomplete="off">
@@ -367,7 +368,7 @@
             <div class="p-6">
                 <form id="shareForm" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label for="shareEmail" class="block text-sm font-semibold text-gray-700 mb-2">
                             <i class="fas fa-envelope text-green-600 mr-2"></i>
                             Email Address
                         </label>
@@ -376,7 +377,7 @@
                                placeholder="user@example.com">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label for="sharePermission" class="block text-sm font-semibold text-gray-700 mb-2">
                             <i class="fas fa-shield-alt text-green-600 mr-2"></i>
                             Permission Level
                         </label>
