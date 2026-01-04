@@ -1,119 +1,217 @@
-# Cloud-Drive
+# 📘 NoteBlock  
+## Student Notes & PYQ Aggregator Platform  
+**(PHP + MySQL | AWS EC2 | Ubuntu)**
 
-A secure, web-based file storage and sharing platform built with PHP, MySQL, HTML, and Bootstrap. Deployed on an AWS EC2 (Ubuntu) instance, this project demonstrates backend concepts like secure file handling, authentication, access control, and cloud deployment.
+---
 
-## Table of contents
+## 🚀 Introduction
 
-- Features
-  - User
-  - Admin
-- Tech stack
-- Project structure
-- Quickstart
-- Database
-- Security highlights
-- Deployment notes
-- Future enhancements
-- License
+**NoteBlock** is a centralized academic platform that allows students to **upload, browse, search, and download** study materials such as:
+
+- Class Notes  
+- Previous Year Question Papers (PYQs)  
+- Solved Papers  
+
+The system is built using **HTML, Bootstrap, Core PHP, and MySQL**, and is designed to be deployed on an **AWS EC2 instance running Ubuntu**.  
+It follows a **REST-style API architecture** and implements **complete CRUD functionality**.
+
+This project is suitable for:
+- Final year academic projects  
+- Portfolio projects  
+- Viva / interview demonstrations  
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | HTML, CSS, Bootstrap |
+| Backend | Core PHP (PDO) |
+| Database | MySQL (InnoDB) |
+| Server | Apache / Nginx |
+| OS | Ubuntu 22.04 |
+| Hosting | AWS EC2 |
+
+---
+
+## ✨ Core Features
+
+### 👨‍🎓 Student
+- Register & login
+- Browse approved notes and PYQs
+- Search & filter by subject, semester, year
+- Download study materials
+- Upvote useful documents
+
+### ✍️ Contributor
+- Upload notes / PYQs / solved papers
+- Add metadata (subject, semester, year)
+- Track downloads & upvotes
+
+# 📘 NoteBlock — Student Notes & PYQ Aggregator
+
+A lightweight academic platform to upload, discover, and download class notes, previous-year question papers (PYQs) and solved papers.
+
+## Table of Contents
+- [Introduction](#introduction)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [API Endpoints](#api-endpoints)
+- [Database Schema (summary)](#database-schema-summary)
+- [Deployment (AWS EC2)](#deployment-aws-ec2)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Introduction
+
+NoteBlock provides a simple way for students and contributors to share study materials. It is implemented with Core PHP, uses MySQL for storage, and exposes REST-style API endpoints for integration.
 
 ## Features
 
-### User
+- Student: register/login, browse, search, download, upvote documents
+- Contributor: upload documents with metadata (subject, semester, year)
+- Admin: review/approve uploads, manage users, moderate content
+- Tracking: download counts and upvotes
 
-- Register and log in
-- Upload files securely
-- Download files you own
-- Create nested folders
-- Delete files
-- View storage usage
-- Share files using secure, token-based public links
+## Tech Stack
 
-### Admin
+| Layer | Technology |
+|---|---|
+| Frontend | HTML, CSS, Bootstrap |
+| Backend | Core PHP (PDO) |
+| Database | MySQL (InnoDB) |
+| Server | Apache / Nginx |
+| OS | Ubuntu (recommended) |
+| Hosting | AWS EC2 |
 
-- View all users
-- Monitor total storage usage and file counts
-- Inspect activity logs
-- Disable users (optional)
+## Quick Start
 
-## Tech stack
+Requirements
+- PHP 8+, Apache/Nginx, MySQL
 
-- Frontend: HTML5, Bootstrap 5, JavaScript
-- Backend: PHP 8.x
-- Database: MySQL (InnoDB)
-- Server: Apache on Ubuntu 22.04
-- Cloud: AWS EC2
+Steps
+1. Clone the repository into your web root.
+2. Import `sql/schema.sql` into a MySQL database named `noteblock`.
+3. Configure DB credentials in `includes/db.php`.
+4. Ensure the `uploads/` directory is writable and stored outside public execution scope if possible.
 
-## Project structure (web root: /var/www/html)
+## Project Structure
 
-/var/www/html/
+noteblock/
 
-├── auth/           # Login, register, logout
-├── files/          # Upload, download, delete, share
-├── folders/        # Folder management
-├── dashboard/      # User dashboard
-├── admin/          # Admin dashboard
-├── config/         # Database and app config
-├── assets/         # CSS, JS, images
-└── index.php
+- public/ — web entry points (index.php, login.php, upload.php, search.php)
+- api/ — REST endpoints (auth/, users/, documents/, votes/, admin/)
+- admin/ — admin UI pages
+- includes/ — shared helpers (`db.php`, `auth.php`, `functions.php`)
+- uploads/ — stored PDF files
+- assets/ — CSS/JS
+- sql/schema.sql — database schema
 
-Private file storage (stored outside the web root):
+## API Endpoints
 
-/var/storage/files/
+Authentication
 
-## Quickstart
+```http
+POST /api/auth/register.php
+POST /api/auth/login.php
+POST /api/auth/logout.php
+```
 
-1. Clone the repo:
-   git clone https://github.com/IvinMathewAbraham/Cloud-Drive.git
-2. Configure your server (Ubuntu 22.04): Apache + PHP 8.x + MySQL
-3. Create a MySQL database and import the schema (see /config or schema files)
-4. Update database credentials in config (config/)
-5. Ensure private storage path exists and is writable by www-data:
-   sudo mkdir -p /var/storage/files && sudo chown -R www-data:www-data /var/storage/files
-6. Point your virtual host to /var/www/html and restart Apache
+Users (admin)
 
-## Database (core tables)
+```http
+GET  /api/users/list.php
+POST /api/users/update-role.php
+POST /api/users/delete.php
+```
 
-- users – authentication, roles, storage usage
-- folders – hierarchical folder structure
-- files – file metadata (actual files stored on disk)
-- shared_links – secure public sharing tokens
-- file_activity – audit logs
+Documents
 
-## Security highlights
+```http
+POST /api/documents/upload.php
+GET  /api/documents/list.php
+GET  /api/documents/view.php?id={id}
+POST /api/documents/update.php
+POST /api/documents/delete.php
+```
 
-- Files stored outside the public web root
-- Randomized stored filenames to avoid collisions and guessability
-- MIME type validation (server-side) — not extension-based only
-- File size limits enforced
-- Passwords hashed with password_hash()
-- Session-based authentication
-- Ownership checks on downloads to prevent IDOR
-- Prepared SQL statements (PDO) to avoid SQL injection
+Search
 
-## Deployment notes (AWS EC2)
+```http
+GET /api/search.php?subject=DBMS&semester=S4&year=2024
+```
 
-- Ubuntu 22.04 EC2 instance
-- Apache + PHP 8.x, MySQL
-- Proper Linux permissions (www-data)
-- Security group rules: allow HTTP (80) and SSH (22) as needed
-- Designed to run on EC2; can be migrated to S3 for object storage later
+Downloads
 
-## Why this project matters
+```http
+GET /api/documents/download.php?id={id}
+```
 
-- Real backend file-system handling (not just CRUD)
-- Cloud deployment experience
-- Security-first design and audit logging
-- Scalable architecture and a strong portfolio project
+Votes
 
-## Future enhancements
+```http
+POST /api/votes/add.php
+POST /api/votes/remove.php
+GET  /api/votes/status.php?document_id={id}
+```
 
-- Chunked uploads for large files
-- File previews (PDF, images)
-- Trash & restore functionality
-- Per-user storage quotas
-- Encryption at rest
-- AWS S3 integration
+Admin moderation
+
+```http
+GET  /api/admin/pending.php
+POST /api/admin/approve.php
+POST /api/admin/reject.php
+```
+
+## Database Schema (summary)
+
+Important tables (high level):
+
+- `users` — id, name, email, password (hashed), role, is_active, created_at
+- `documents` — id, title, file_path, type (notes/pyq/solved), subject, semester, year, uploader_id, status, downloads, upvotes, created_at
+- `votes` — user_id, document_id, voted_at (PK: user_id, document_id)
+- `downloads` — id, user_id, document_id, downloaded_at
+- `admin_logs` — id, admin_id, action, target_id, created_at
+
+Indexes: add indexes on `documents(subject, semester, year, status)` and consider a FULLTEXT index on `title` and `subject` for better search.
+
+Security notes
+
+- Hash passwords (use `password_hash`).
+- Use prepared statements (PDO) for DB queries.
+- Validate MIME types for uploads and store files outside the public execution scope.
+- Enforce role-based access control for admin actions.
+
+## Deployment (AWS EC2 — Ubuntu)
+
+Quick steps
+
+```bash
+sudo apt update
+sudo apt install apache2 php php-mysql mysql-server
+sudo ufw allow 'Apache Full'
+# Place project in /var/www/html/noteblock and set permissions
+```
+
+Import the SQL schema and configure database credentials in `includes/db.php`.
+
+## Contributing
+
+1. Fork the repo and create a feature branch.
+2. Open a pull request with a clear description of changes.
+3. Keep migrations or schema changes in `sql/` and document them here.
 
 ## License
 
-This project is provided for learning and portfolio use. Feel free to fork and extend.
+Specify your license here (e.g. MIT) or add project-specific terms.
+
+---
+
+If you'd like, I can also:
+- add a minimal `schema.sql` example file (cleaned),
+- generate a sample `.env.example` and update `includes/db.php` to use environment variables,
+- or run a quick lint/format pass on markdown.
+
