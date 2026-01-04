@@ -105,6 +105,10 @@ if ($rate_limit) {
 }
 $stmt->execute();
 
+// Make sure is_encrypted is set to 0 or 1 (not an empty string)
+$is_encrypted = isset($is_encrypted) && $is_encrypted !== '' ? (int)$is_encrypted : 0;
+$stmt->execute();
+
 echo json_encode(['success' => true, 'message' => 'File uploaded successfully']);
 
 function encryptFile($file_path, $key) {
