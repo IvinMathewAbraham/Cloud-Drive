@@ -49,6 +49,18 @@ if ($user_info['storage_used'] + $file['size'] > USER_STORAGE_QUOTA) {
     exit;
 }
 
+// Verify uploads directory exists and is writable
+if (!is_dir(UPLOADS_DIR)) {
+    error_log("Upload failed: Uploads directory doesn't exist: " . UPLOADS_DIR);
+    echo json_encode(['success' => false, 'message' => 'Upload directory not configured']);
+    exit;
+}
+
+if (!is_writable(UPLOADS_DIR)) {
+    error_log("Upload failed: Uploads directory not writable: " . UPLOADS_DIR . " (Permissions: " . substr(sprintf('%o', fileperms(UPLOADS_DIR)), -4) . ")");
+    echo json_encode(['success' => false, 'message' => 'Upload directory not writable. Please contact administrator.']);
+    exit;
+}
 // Generate unique filename
 $original_filename = basename($file['name']);
 $file_ext = pathinfo($original_filename, PATHINFO_EXTENSION);
@@ -57,14 +69,20 @@ $filename = uniqid() . '_' . bin2hex(random_bytes(4)) . '.' . $file_ext;
 // Create user upload directory
 $user_upload_dir = UPLOADS_DIR . '/' . $user_id;
 if (!is_dir($user_upload_dir)) {
-    mkdir($user_upload_dir, 0755, true);
+        if (!mkdir($user_upload_dir, 0755, true)) {
+        error_log("Failed to create user directory: $user_upload_dir");
+        echo json_encode(['success' => false, 'message' => 'Failed to create upload directory']);
+        exit;
+    }
 }
 
 $file_path = $user_upload_dir . '/' . $filename;
 
 // Move uploaded file
 if (!move_uploaded_file($file['tmp_name'], $file_path)) {
-    echo json_encode(['success' => false, 'message' => 'Failed to save file']);
+     $error_msg = error_get_last();
+    error_log("Failed to move uploaded file. Tmp: {$file['tmp_name']}, Dest: $file_path, Error: " . ($error_msg['message'] ?? 'unknown'));
+    echo json_encode(['success' => false, 'message' => 'Failed to save file. Check server permissions.']);
     exit;
 }
 
@@ -105,9 +123,6 @@ if ($rate_limit) {
 }
 $stmt->execute();
 
-// Ensure is_encrypted is an integer
-$is_encrypted = isset($_POST['encrypt']) ? 1 : 0;  // Convert to int
-$stmt->bind_param("ssissi", $filename, $file_path, $file_size, $is_encrypted, $user_id); // Correct binding
 
 echo json_encode(['success' => true, 'message' => 'File uploaded successfully']);
 
