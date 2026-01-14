@@ -30,8 +30,19 @@ define('SESSION_TIMEOUT', (int)($env_vars['SESSION_TIMEOUT'] ?? 3600)); // 1 hou
 define('MAX_UPLOAD_PER_HOUR', (int)($env_vars['MAX_UPLOAD_PER_HOUR'] ?? 20));
 
 // File paths
-define('UPLOADS_DIR', __DIR__ . '/../uploads');
+$uploads_dir = $env_vars['UPLOADS_DIR'] ?? __DIR__ . '/../uploads';
+define('UPLOADS_DIR', realpath($uploads_dir) ?: $uploads_dir);
 define('PUBLIC_DIR', __DIR__ . '/../public');
+
+// Ensure uploads directory exists and is writable
+if (!is_dir(UPLOADS_DIR)) {
+    if (!mkdir(UPLOADS_DIR, 0755, true)) {
+        error_log("Failed to create uploads directory: " . UPLOADS_DIR);
+    }
+}
+if (!is_writable(UPLOADS_DIR)) {
+    error_log("WARNING: Uploads directory is not writable: " . UPLOADS_DIR);
+}
 
 // Enable error reporting (disable in production)
 error_reporting(E_ALL);
