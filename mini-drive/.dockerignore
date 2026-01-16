@@ -1,0 +1,60 @@
+# MiniDrive - Docker Ignore File
+# Exclude files from Docker build context
+
+# User uploads (will be mounted as volume)
+uploads/*
+!uploads/.gitkeep
+
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Documentation
+*.md
+!README.md
+
+# Docker files (already in context)
+docker-compose.yml
+.dockerignore
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Dependencies (if using Composer)
+vendor/
+composer.lock
+composer.phar
+
+# Node modules (if any)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Temporary files
+tmp/
+temp/
+cache/
+
+# Backup files
+*.bak
+*.backup
+*.old
