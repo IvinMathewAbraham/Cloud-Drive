@@ -1,0 +1,85 @@
+# MiniDrive - Docker Compose Configuration
+# For both local development and production deployment
+
+version: '3.8'
+
+services:
+  # PHP + Apache Application Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: minidrive-app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      # Bind mount for uploads (persistent user files)
+      - ./uploads:/var/www/html/uploads
+      # Optional: mount source code for development (comment out for production)
+      # - ./public:/var/www/html/public
+      # - ./includes:/var/www/html/includes
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - APP_URL=${APP_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - minidrive-network
+
+  # MySQL 8.0 Database Service
+  db:
+    image: mysql:8.0
+    container_name: minidrive-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      # Named volume for database persistence
+      - db-data:/var/lib/mysql
+    ports:
+      # Expose MySQL port for debugging (remove in production)
+      - "3306:3306"
+    networks:
+      - minidrive-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # phpMyAdmin (Optional - for development only)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: minidrive-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: ${DB_USER}
+      PMA_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - minidrive-network
+    profiles:
+      - dev  # Only start with: docker compose --profile dev up
+
+# Named volume for MySQL data persistence
+volumes:
+  db-data:
+    driver: local
+
+# Custom network
+networks:
+  minidrive-network:
+    driver: bridge
