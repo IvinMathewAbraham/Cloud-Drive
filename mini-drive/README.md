@@ -15,44 +15,13 @@ A lightweight, modern cloud storage application built with PHP, MySQL, and Tailw
 
 ## Requirements
 
-### Traditional Setup
-- PHP 8.0+
-- MySQL 8.0+
+- PHP 7.4+
+- MySQL 5.7+
 - Apache/Nginx with mod_rewrite
 - 50MB+ disk space per user
-
-### Docker Setup (Recommended)
-- Docker Desktop (Windows/Mac) or Docker Engine (Linux)
-- Docker Compose v2.0+
-- 2GB+ RAM, 5GB+ disk space
-- AWS EC2 compatible (t2.micro with 20GB EBS)
+- AWS EC2 Free Tier compatible (t2.micro, 20GB EBS)
 
 ## Installation
-
-### 🐳 Docker Installation (Recommended)
-
-**Quick Start:**
-```bash
-# 1. Copy environment file
-cp .env.example .env
-
-# 2. Edit .env with your settings
-notepad .env
-
-# 3. Start containers
-docker compose up -d --build
-
-# 4. Initialize database
-docker compose exec app php /var/www/html/includes/setup-db.php
-
-# 5. Access at http://localhost:8080
-```
-
-**For complete Docker documentation, see [DOCKER_SETUP.md](DOCKER_SETUP.md)**
-
----
-
-### 📦 Traditional Installation (Without Docker)
 
 ### 1. Create Database
 
@@ -114,27 +83,13 @@ mini-drive/
 ├── uploads/            # User files (non-public)
 ├── .env                # Environment variables
 ├── .gitignore          # Git ignore file
-├── .dockerignore       # Docker ignore file
-├── Dockerfile          # Docker container configuration
-├── docker-compose.yml  # Docker services orchestration
-├── DOCKER_SETUP.md     # Complete Docker documentation
 ├── STYLING_CHANGES.md  # Styling documentation
 └── TAILWIND_BROWSER_BUILD.md # Tailwind setup guide
 ```
 
 ## Usage
 
-### With Docker:
-1. Access http://localhost:8080
-2. **Register**: Create a new account
-3. **Login**: Sign in with your credentials
-4. **Upload**: Drag & drop or click to upload files (max 10MB)
-5. **Share**: Click the share icon to share files with other users
-6. **Download**: Click download icon to retrieve your files
-7. **Delete**: Remove files with the delete button
-
-### Without Docker:
-1. **Register**: Navigate to `/public/register.php`
+1. **Register**: Create a new account at `/public/register.php`
 2. **Login**: Sign in at `/public/login.php`
 3. **Upload**: Drag & drop or click to upload files
 4. **Share**: Click the share icon to share files with others
