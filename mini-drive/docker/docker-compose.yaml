@@ -1,0 +1,41 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/DockerFile
+    container_name: minicld_app
+    ports:
+      - "8080:80"
+    volumes:
+      - ../public:/var/www/html/public
+      - ../includes:/var/www/html/includes
+      - ../uploads:/var/www/html/uploads
+    environment:
+      - DB_HOST=db
+      - DB_USER=mini_user
+      - DB_PASSWORD=mini_pass
+      - DB_NAME=mini_drive
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.0
+    container_name: minicld_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: mini_drive
+      MYSQL_USER: mini_user
+      MYSQL_PASSWORD: mini_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+volumes:
+  db_data:
