@@ -98,7 +98,17 @@ if ($file['size'] > 1024 * 1024) { // Encrypt files > 1MB
 // Store in database
 $stmt = $db->prepare("INSERT INTO files (user_id, filename, original_filename, file_path, file_size, file_type, is_encrypted, encryption_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 $file_type = mime_content_type($file_path) ?: 'application/octet-stream';
-$stmt->bind_param('isssisbs', $user_id, $filename, $original_filename, $file_path, $file['size'], $file_type, $is_encrypted, $encryption_key);
+$stmt->bind_param(
+    'issssiss',
+    $user_id,
+    $filename,
+    $original_filename,
+    $file_path,
+    $file['size'],
+    $file_type,
+    $is_encrypted,
+    $encryption_key
+);
 
 if (!$stmt->execute()) {
     unlink($file_path);

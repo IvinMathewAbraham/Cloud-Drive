@@ -188,35 +188,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 </html>
 
-<?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once __DIR__ . '/../includes/auth.php';
-
-    $username = $_POST['username'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
-
-    // Validate
-    if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
-        header('Location: register.php?error=All fields are required');
-        exit;
-    }
-
-    if ($password !== $confirm_password) {
-        header('Location: register.php?error=Passwords do not match');
-        exit;
-    }
-
-    $auth = new Auth();
-    $result = $auth->register($username, $email, $password);
-
-    if ($result['success']) {
-        header('Location: register.php?success=1');
-    } else {
-        header('Location: register.php?error=' . urlencode($result['message']));
-    }
-    exit;
-}
-?>
 
