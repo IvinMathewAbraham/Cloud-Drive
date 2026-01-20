@@ -1,21 +1,29 @@
 FROM php:8.2-apache
 
-# Enable Apache rewrite and other modules
-RUN a2enmod rewrite && a2enmod headers
+# Enable Apache modules
+RUN a2enmod rewrite headers
 
 # Install PHP extensions
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-# Set working directory
-WORKDIR /var/www/html/
+# Configure Apache DocumentRoot to /public
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
+ && sed -i 's|<Directory /var/www/html>|<Directory /var/www/html/public>|g' /etc/apache2/apache2.conf \
+ && sed -i 's|AllowOverride None|AllowOverride All|g' /etc/apache2/apache2.conf
 
-# Configure Apache DocumentRoot to public folder
-RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf \
-    && sed -i 's|<Directory /var/www/>|<Directory /var/www/html/public/>|' /etc/apache2/apache2.conf \
-    && sed -i 's|AllowOverride None|AllowOverride All|' /etc/apache2/apache2.conf
+# Create uploads directory and set permissions (as root)
+RUN mkdir -p /var/www/html/uploads \
+ && chown -R www-data:www-data /var/www/html/uploads
 
-# Create uploads directory with proper permissions
-RUN mkdir -p /var/www/html/uploads && chown -R www-data:www-data /var/www/html/uploads
+# Copy entrypoint and make it executable (AS ROOT)
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Expose port
+# NOW drop privileges (this must be last)
+USER www-data
+
+WORKDIR /var/www/html/public
+
+ENTRYPOINT ["/entrypoint.sh"]
+
 EXPOSE 80

@@ -1,3 +1,41 @@
+<?php
+    require_once __DIR__ . '/../includes/auth.php';
+    require_once __DIR__ . '/../includes/db.php';
+
+    $auth = new Auth();
+    $auth->requireLogin();
+    $auth->checkSessionTimeout();
+
+    $user_id = $auth->getCurrentUser();
+    $user_info = $auth->getUserInfo($user_id);
+    $db = Database::getInstance()->getConnection();
+
+    // Get user files
+    $stmt = $db->prepare("SELECT * FROM files WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC");
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $files = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    // Recalculate storage used from actual files
+    $total_storage = 0;
+    foreach ($files as $file) {
+        $total_storage += $file['file_size'];
+    }
+    
+    // Update storage in database if different
+    if ($total_storage != $user_info['storage_used']) {
+        $stmt = $db->prepare("UPDATE users SET storage_used = ? WHERE id = ?");
+        $stmt->bind_param('ii', $total_storage, $user_id);
+        $stmt->execute();
+        $user_info['storage_used'] = $total_storage;
+    }
+
+    // Get storage usage
+    $storage_used = $user_info['storage_used'];
+    $storage_quota = USER_STORAGE_QUOTA;
+    $storage_percent = ($storage_used / $storage_quota) * 100;
+    ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -68,43 +106,7 @@
     </style>
 </head>
 <body class="bg-slate-50">
-    <?php
-    require_once __DIR__ . '/../includes/auth.php';
-    require_once __DIR__ . '/../includes/db.php';
-
-    $auth = new Auth();
-    $auth->requireLogin();
-    $auth->checkSessionTimeout();
-
-    $user_id = $auth->getCurrentUser();
-    $user_info = $auth->getUserInfo($user_id);
-    $db = Database::getInstance()->getConnection();
-
-    // Get user files
-    $stmt = $db->prepare("SELECT * FROM files WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC");
-    $stmt->bind_param('i', $user_id);
-    $stmt->execute();
-    $files = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-    // Recalculate storage used from actual files
-    $total_storage = 0;
-    foreach ($files as $file) {
-        $total_storage += $file['file_size'];
-    }
     
-    // Update storage in database if different
-    if ($total_storage != $user_info['storage_used']) {
-        $stmt = $db->prepare("UPDATE users SET storage_used = ? WHERE id = ?");
-        $stmt->bind_param('ii', $total_storage, $user_id);
-        $stmt->execute();
-        $user_info['storage_used'] = $total_storage;
-    }
-
-    // Get storage usage
-    $storage_used = $user_info['storage_used'];
-    $storage_quota = USER_STORAGE_QUOTA;
-    $storage_percent = ($storage_used / $storage_quota) * 100;
-    ?>
 
     <!-- Navigation -->
     <nav class="bg-white shadow-lg border-b border-gray-100">

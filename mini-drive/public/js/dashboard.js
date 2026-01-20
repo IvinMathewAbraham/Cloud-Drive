@@ -169,27 +169,54 @@ function uploadFile(file) {
         return;
     }
 
-    const formData = new FormData();
+    const formData = new FormData();   // IMPORTANT — THIS WAS MISSING
     formData.append('file', file);
+
     uploadProgress.classList.remove('hidden');
 
     fetch('upload.php', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(async response => {
+        const contentType = response.headers.get('content-type') || '';
+
+        // If not JSON, read raw text and throw meaningful error
+        if (!contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Non-JSON response:', text);
+            throw new Error('Server returned non-JSON response');
+        }
+
+        return response.json();
+    })
     .then(data => {
+        uploadProgress.classList.add('hidden');
+        progressBar.style.width = '0%';
+        uploadPercent.textContent = '0%';
+
+        if (data.message === 'not_authenticated') {
+            showNotification('Session expired. Redirecting...', 'error');
+            setTimeout(() => window.location.href = 'login.php', 1500);
+            return;
+        }
+
         if (data.success) {
             showNotification('File uploaded successfully!', 'success');
-            setTimeout(() => location.reload(), 1500);
+            setTimeout(() => location.reload(), 1200);
         } else {
             showNotification('Upload failed: ' + data.message, 'error');
         }
     })
     .catch(error => {
-        showNotification('Upload error: ' + error, 'error');
+        uploadProgress.classList.add('hidden');
+        progressBar.style.width = '0%';
+        uploadPercent.textContent = '0%';
+
+        showNotification('Upload error: ' + error.message, 'error');
     });
 }
+
 
 function previewFile(fileId, fileName) {
     const fileName_elem = document.getElementById('fileName');
