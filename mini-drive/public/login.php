@@ -131,27 +131,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 </html>
 
-<?php
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once __DIR__ . '/../includes/auth.php';
-
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-
-    if (empty($email) || empty($password)) {
-        header('Location: login.php?error=All fields are required');
-        exit;
-    }
-
-    $auth = new Auth();
-    $result = $auth->login($email, $password);
-
-    if ($result['success']) {
-        header('Location: index.php');
-    } else {
-        header('Location: login.php?error=' . urlencode($result['message']));
-    }
-    exit;
-}
-?>
-
