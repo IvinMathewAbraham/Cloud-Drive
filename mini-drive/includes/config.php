@@ -56,9 +56,15 @@ if (!is_writable(UPLOADS_DIR)) {
     error_log("WARNING: Uploads directory is not writable: " . UPLOADS_DIR);
 }
 
-// Error reporting (disable in production)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Error reporting (disable in production, enable for development)
+$is_production = ($env_vars['APP_ENV'] ?? 'development') === 'production';
+if ($is_production) {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+} else {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
 
 // Timezone
 date_default_timezone_set($env_vars['TZ'] ?? 'UTC');

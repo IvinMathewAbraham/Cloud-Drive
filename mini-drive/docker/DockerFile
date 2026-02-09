@@ -19,11 +19,10 @@ RUN mkdir -p /var/www/html/uploads \
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# NOW drop privileges (this must be last)
-USER www-data
-
 WORKDIR /var/www/html/public
 
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 80
+
+# Note: entrypoint will run as root and then Apache will run as www-data

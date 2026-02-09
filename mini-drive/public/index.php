@@ -16,21 +16,7 @@
     $stmt->execute();
     $files = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    // Recalculate storage used from actual files
-    $total_storage = 0;
-    foreach ($files as $file) {
-        $total_storage += $file['file_size'];
-    }
-    
-    // Update storage in database if different
-    if ($total_storage != $user_info['storage_used']) {
-        $stmt = $db->prepare("UPDATE users SET storage_used = ? WHERE id = ?");
-        $stmt->bind_param('ii', $total_storage, $user_id);
-        $stmt->execute();
-        $user_info['storage_used'] = $total_storage;
-    }
-
-    // Get storage usage
+    // Get storage usage (trust database value for performance)
     $storage_used = $user_info['storage_used'];
     $storage_quota = USER_STORAGE_QUOTA;
     $storage_percent = ($storage_used / $storage_quota) * 100;
