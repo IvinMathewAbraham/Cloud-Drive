@@ -1,4 +1,4 @@
-#!/bin/sh
+﻿#!/bin/sh
 set -e
 
 echo "Waiting for MySQL..."
@@ -14,7 +14,7 @@ exit(\$conn->connect_errno ? 1 : 0);
   sleep 2
 done
 
-echo "MySQL is up — running setup-db.php"
+echo "MySQL is up â€” running setup-db.php"
 php /var/www/html/includes/setup-db.php || true
 
 echo "Starting Apache"
