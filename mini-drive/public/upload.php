@@ -1,11 +1,34 @@
 <?php
+// Start output buffering to catch any stray output
+ob_start();
+
+// Set error handler to convert errors to JSON
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    ob_end_clean();
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => 'Server error: ' . $errstr]);
+    exit;
+});
+
+// Set exception handler
+set_exception_handler(function($exception) {
+    ob_end_clean();
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => 'Server error: ' . $exception->getMessage()]);
+    exit;
+});
+
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/db.php';
 
-$auth = new Auth();
-$auth->requireLogin();
-
 header('Content-Type: application/json');
+ob_end_clean();
+
+$auth = new Auth();
+if (!$auth->isLoggedIn()) {
+    echo json_encode(['success' => false, 'message' => 'not_authenticated']);
+    exit;
+}
 
 $user_id = $auth->getCurrentUser();
 $db = Database::getInstance()->getConnection();
