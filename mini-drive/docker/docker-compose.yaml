@@ -16,6 +16,7 @@ services:
       - DB_USER=mini_user
       - DB_PASSWORD=mini_pass
       - DB_NAME=mini_drive
+      - APP_URL=http://localhost:5003
     depends_on:
       db:
         condition: service_healthy

@@ -34,7 +34,7 @@ define('DB_NAME', $env_vars['DB_NAME'] ?? 'mini_drive');
 
 // Application Configuration
 define('APP_NAME', $env_vars['APP_NAME'] ?? 'MiniDrive');
-define('APP_URL', $env_vars['APP_URL'] ?? 'http://localhost:8080');
+define('APP_URL', $env_vars['APP_URL'] ?? 'http://localhost:5003');
 
 define('MAX_FILE_SIZE', (int)($env_vars['MAX_FILE_SIZE'] ?? 10485760));       // 10 MB
 define('USER_STORAGE_QUOTA', (int)($env_vars['USER_STORAGE_QUOTA'] ?? 52428800)); // 50 MB
