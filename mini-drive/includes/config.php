@@ -28,16 +28,17 @@ if (file_exists($env_file)) {
 
 // Database Configuration
 define('DB_HOST', $env_vars['DB_HOST'] ?? 'db');
-define('DB_USER', $env_vars['DB_USER'] ?? 'mini_user');
-define('DB_PASSWORD', $env_vars['DB_PASSWORD'] ?? 'mini_pass');  // FIXED
-define('DB_NAME', $env_vars['DB_NAME'] ?? 'mini_drive');
+define('DB_USER', $env_vars['DB_USER'] ?? 'photo_user');
+define('DB_PASSWORD', $env_vars['DB_PASSWORD'] ?? 'photo_pass');
+define('DB_NAME', $env_vars['DB_NAME'] ?? 'photo_drive');
 
 // Application Configuration
-define('APP_NAME', $env_vars['APP_NAME'] ?? 'MiniDrive');
+define('APP_NAME', $env_vars['APP_NAME'] ?? 'PhotoDrive');
 define('APP_URL', $env_vars['APP_URL'] ?? 'http://localhost:5003');
 
-define('MAX_FILE_SIZE', (int)($env_vars['MAX_FILE_SIZE'] ?? 10485760));       // 10 MB
-define('USER_STORAGE_QUOTA', (int)($env_vars['USER_STORAGE_QUOTA'] ?? 52428800)); // 50 MB
+define('PHOTO_MAX_SIZE', (int)($env_vars['PHOTO_MAX_SIZE'] ?? 10485760));
+define('USER_PHOTO_QUOTA', (int)($env_vars['USER_PHOTO_QUOTA'] ?? 52428800));
+define('ALBUM_STORAGE_QUOTA', (int)($env_vars['ALBUM_STORAGE_QUOTA'] ?? 26214400));
 define('SESSION_TIMEOUT', (int)($env_vars['SESSION_TIMEOUT'] ?? 3600));
 define('MAX_UPLOAD_PER_HOUR', (int)($env_vars['MAX_UPLOAD_PER_HOUR'] ?? 20));
 

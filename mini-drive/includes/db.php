@@ -42,6 +42,18 @@ class Database {
         return $this->conn->real_escape_string($string);
     }
 
+    public function beginTransaction() {
+        return $this->conn->begin_transaction();
+    }
+
+    public function commit() {
+        return $this->conn->commit();
+    }
+
+    public function rollback() {
+        return $this->conn->rollback();
+    }
+
     public function lastInsertId() {
         return $this->conn->insert_id;
     }
