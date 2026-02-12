@@ -26,24 +26,45 @@ if (file_exists($env_file)) {
     }
 }
 
+/**
+ * Look up configuration values in process env first, then .env fallback.
+ */
+function get_env_value(string $key, $default, array $env_vars)
+{
+    if (array_key_exists($key, $_ENV)) {
+        return $_ENV[$key];
+    }
+
+    $value = getenv($key);
+    if ($value !== false && $value !== '') {
+        return $value;
+    }
+
+    if (array_key_exists($key, $env_vars)) {
+        return $env_vars[$key];
+    }
+
+    return $default;
+}
+
 // Database Configuration
-define('DB_HOST', $env_vars['DB_HOST'] ?? 'db');
-define('DB_USER', $env_vars['DB_USER'] ?? 'photo_user');
-define('DB_PASSWORD', $env_vars['DB_PASSWORD'] ?? 'photo_pass');
-define('DB_NAME', $env_vars['DB_NAME'] ?? 'photo_drive');
+define('DB_HOST', get_env_value('DB_HOST', 'db', $env_vars));
+define('DB_USER', get_env_value('DB_USER', 'photo_user', $env_vars));
+define('DB_PASSWORD', get_env_value('DB_PASSWORD', 'photo_pass', $env_vars));
+define('DB_NAME', get_env_value('DB_NAME', 'photo_drive', $env_vars));
 
 // Application Configuration
-define('APP_NAME', $env_vars['APP_NAME'] ?? 'PhotoDrive');
-define('APP_URL', $env_vars['APP_URL'] ?? 'http://localhost:5003');
+define('APP_NAME', get_env_value('APP_NAME', 'PhotoDrive', $env_vars));
+define('APP_URL', get_env_value('APP_URL', 'http://localhost:5003', $env_vars));
 
-define('PHOTO_MAX_SIZE', (int)($env_vars['PHOTO_MAX_SIZE'] ?? 10485760));
-define('USER_PHOTO_QUOTA', (int)($env_vars['USER_PHOTO_QUOTA'] ?? 52428800));
-define('ALBUM_STORAGE_QUOTA', (int)($env_vars['ALBUM_STORAGE_QUOTA'] ?? 26214400));
-define('SESSION_TIMEOUT', (int)($env_vars['SESSION_TIMEOUT'] ?? 3600));
-define('MAX_UPLOAD_PER_HOUR', (int)($env_vars['MAX_UPLOAD_PER_HOUR'] ?? 20));
+define('PHOTO_MAX_SIZE', (int)get_env_value('PHOTO_MAX_SIZE', 10485760, $env_vars));
+define('USER_PHOTO_QUOTA', (int)get_env_value('USER_PHOTO_QUOTA', 52428800, $env_vars));
+define('ALBUM_STORAGE_QUOTA', (int)get_env_value('ALBUM_STORAGE_QUOTA', 26214400, $env_vars));
+define('SESSION_TIMEOUT', (int)get_env_value('SESSION_TIMEOUT', 3600, $env_vars));
+define('MAX_UPLOAD_PER_HOUR', (int)get_env_value('MAX_UPLOAD_PER_HOUR', 20, $env_vars));
 
 // File paths
-$uploads_dir = $env_vars['UPLOADS_DIR'] ?? (__DIR__ . '/../uploads');
+$uploads_dir = get_env_value('UPLOADS_DIR', (__DIR__ . '/../uploads'), $env_vars);
 define('UPLOADS_DIR', realpath($uploads_dir) ?: $uploads_dir);
 define('PUBLIC_DIR', __DIR__ . '/../public');
 
@@ -58,7 +79,7 @@ if (!is_writable(UPLOADS_DIR)) {
 }
 
 // Error reporting (disable in production, enable for development)
-$is_production = ($env_vars['APP_ENV'] ?? 'development') === 'production';
+$is_production = get_env_value('APP_ENV', 'development', $env_vars) === 'production';
 if ($is_production) {
     error_reporting(0);
     ini_set('display_errors', 0);
@@ -68,5 +89,5 @@ if ($is_production) {
 }
 
 // Timezone
-date_default_timezone_set($env_vars['TZ'] ?? 'UTC');
+date_default_timezone_set(get_env_value('TZ', 'UTC', $env_vars));
 ?>

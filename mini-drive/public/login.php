@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - MiniDrive</title>
+    <title>Login - PhotoDrive</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <style type="text/tailwindcss">
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient rounded-2xl mb-4 shadow-lg">
                         <i class="fas fa-sign-in-alt text-3xl text-white"></i>
                     </div>
-                    <h1 class="text-4xl font-bold bg-gradient bg-clip-text text-transparent mb-2">MiniDrive</h1>
+                    <h1 class="text-4xl font-bold bg-gradient bg-clip-text text-transparent mb-2">PhotoDrive</h1>
                     <p class="text-gray-500">Welcome Back</p>
                 </div>
 

@@ -125,7 +125,7 @@ class Auth {
 
     public function requireLogin() {
         if (!$this->isLoggedIn()) {
-            header('Location: ' . APP_URL . '/public/login.php');
+            header('Location: ' . APP_URL . '/login.php');
             exit;
         }
     }

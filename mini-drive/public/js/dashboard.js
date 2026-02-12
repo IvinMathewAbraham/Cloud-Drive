@@ -1,348 +1,511 @@
-let currentFileId = null;
+const bodyDataset = document.body.dataset;
+const state = {
+    currentAlbumId: parseInt(bodyDataset.currentAlbumId || '0', 10),
+    photoMaxSize: parseInt(bodyDataset.photoMaxSize || '0', 10),
+    maxUploads: parseInt(bodyDataset.maxUploads || '0', 10)
+};
 
-// DOM Elements
+let currentPhotoId = null;
+let movePhotoId = null;
+
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const uploadProgress = document.getElementById('uploadProgress');
 const progressBar = document.getElementById('progressBar');
 const uploadPercent = document.getElementById('uploadPercent');
+
 const previewModal = document.getElementById('previewModal');
-const shareModal = document.getElementById('shareModal');
 const previewContent = document.getElementById('previewContent');
+const previewFileName = document.getElementById('previewFileName');
+const previewDownloadLink = document.getElementById('previewDownloadLink');
 const closePreviewBtn = document.getElementById('closePreviewBtn');
+
+const shareModal = document.getElementById('shareModal');
+const shareForm = document.getElementById('shareForm');
+const shareEmailInput = document.getElementById('shareEmail');
+const sharePermissionSelect = document.getElementById('sharePermission');
 const closeShareBtn = document.getElementById('closeShareBtn');
 const cancelShareBtn = document.getElementById('cancelShareBtn');
-const shareForm = document.getElementById('shareForm');
 
-// Wait for DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Upload handlers
-    if (uploadArea) {
+const createAlbumModal = document.getElementById('createAlbumModal');
+const openCreateAlbumBtn = document.getElementById('openCreateAlbum');
+const closeCreateAlbumBtn = document.getElementById('closeCreateAlbum');
+const cancelCreateAlbumBtn = document.getElementById('cancelCreateAlbum');
+const createAlbumForm = document.getElementById('createAlbumForm');
+
+const movePhotoModal = document.getElementById('movePhotoModal');
+const closeMoveModalBtn = document.getElementById('closeMoveModal');
+const cancelMoveBtn = document.getElementById('cancelMove');
+const movePhotoForm = document.getElementById('movePhotoForm');
+const moveTargetAlbumSelect = document.getElementById('moveTargetAlbum');
+
+const photoGrid = document.getElementById('photoGrid');
+const photoSearchInput = document.getElementById('photoSearch');
+const photoCountTag = document.getElementById('photoCountTag');
+const noSearchResults = document.getElementById('noSearchResults');
+
+const albumDataElement = document.getElementById('albumData');
+let albumOptions = [];
+if (albumDataElement) {
+    try {
+        const parsed = JSON.parse(albumDataElement.dataset.albums || '[]');
+        if (Array.isArray(parsed)) {
+            albumOptions = parsed;
+        }
+    } catch (err) {
+        console.error('Failed to parse album options', err);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (uploadArea && fileInput) {
         uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
+        uploadArea.addEventListener('dragover', event => {
+            event.preventDefault();
             uploadArea.classList.add('upload-zone-active');
         });
         uploadArea.addEventListener('dragleave', () => {
             uploadArea.classList.remove('upload-zone-active');
         });
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
+        uploadArea.addEventListener('drop', event => {
+            event.preventDefault();
             uploadArea.classList.remove('upload-zone-active');
-            handleFiles(e.dataTransfer.files);
+            handleFiles(event.dataTransfer.files);
         });
-        fileInput.addEventListener('change', (e) => {
-            handleFiles(e.target.files);
-        });
+        fileInput.addEventListener('change', event => handleFiles(event.target.files));
     }
 
-    // Modal handlers - Close on backdrop click
     if (previewModal) {
-        previewModal.addEventListener('click', (e) => {
-            if (e.target.id === 'previewModal') {
-                closePreviewModal();
+        previewModal.addEventListener('click', event => {
+            if (event.target === previewModal) {
+                closeModal(previewModal);
             }
         });
     }
-    
-    if (shareModal) {
-        shareModal.addEventListener('click', (e) => {
-            if (e.target.id === 'shareModal') {
-                closeShareModal();
-            }
-        });
+    if (closePreviewBtn) {
+        closePreviewBtn.addEventListener('click', () => closeModal(previewModal));
     }
 
-    // Close modal buttons
-    if (closePreviewBtn) {
-        closePreviewBtn.addEventListener('click', closePreviewModal);
+    if (shareModal) {
+        shareModal.addEventListener('click', event => {
+            if (event.target === shareModal) {
+                closeModal(shareModal);
+            }
+        });
     }
     if (closeShareBtn) {
-        closeShareBtn.addEventListener('click', closeShareModal);
+        closeShareBtn.addEventListener('click', () => closeModal(shareModal));
     }
     if (cancelShareBtn) {
-        cancelShareBtn.addEventListener('click', closeShareModal);
+        cancelShareBtn.addEventListener('click', () => closeModal(shareModal));
     }
 
-    // File preview button listeners
-    document.addEventListener('click', (e) => {
-        const previewBtn = e.target.closest('.file-preview-btn, .file-preview-click');
-        if (previewBtn) {
-            const fileId = previewBtn.dataset.fileId;
-            const fileName = previewBtn.dataset.fileName;
-            previewFile(fileId, fileName);
-        }
-
-        const shareBtn = e.target.closest('.file-share-btn');
-        if (shareBtn) {
-            currentFileId = shareBtn.dataset.fileId;
-            openShareModal(currentFileId);
-        }
-
-        const deleteBtn = e.target.closest('.file-delete-btn');
-        if (deleteBtn) {
-            deleteFile(deleteBtn.dataset.fileId);
-        }
-    });
-
-    // Share form submission
-    if (shareForm) {
-        shareForm.addEventListener('submit', handleShare);
-    }
-
-    // File search functionality
-    const fileSearch = document.getElementById('fileSearch');
-    const searchResultCount = document.getElementById('searchResultCount');
-    const tableBody = document.querySelector('tbody');
-
-    if (fileSearch && tableBody) {
-        fileSearch.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            const rows = tableBody.querySelectorAll('tr');
-            let visibleCount = 0;
-
-            rows.forEach(row => {
-                // Get the filename from the first cell
-                const filenameCell = row.querySelector('td');
-                const filename = filenameCell ? filenameCell.textContent.toLowerCase() : '';
-
-                // Show or hide row based on search term
-                if (searchTerm === '' || filename.includes(searchTerm)) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            // Update result count
-            const totalFiles = document.querySelectorAll('tbody tr').length;
-            if (searchTerm === '') {
-                searchResultCount.textContent = `Showing ${totalFiles} files`;
-            } else {
-                searchResultCount.textContent = `Found ${visibleCount} of ${totalFiles} files`;
-            }
-
-            // Show "no results" message if needed
-            if (visibleCount === 0 && searchTerm !== '') {
-                if (!document.getElementById('noSearchResults')) {
-                    const noResults = document.createElement('tr');
-                    noResults.id = 'noSearchResults';
-                    noResults.innerHTML = `
-                        <td colspan="5" class="px-6 py-8 text-center">
-                            <i class="fas fa-search text-4xl text-gray-300 mb-3 block"></i>
-                            <p class="text-gray-600 font-semibold">No files match "${escapeHtml(searchTerm)}"</p>
-                            <p class="text-gray-500 text-sm mt-2">Try a different search term</p>
-                        </td>
-                    `;
-                    tableBody.appendChild(noResults);
-                }
-            } else {
-                // Remove "no results" message if it exists
-                const noResults = document.getElementById('noSearchResults');
-                if (noResults) {
-                    noResults.remove();
-                }
+    if (createAlbumModal) {
+        createAlbumModal.addEventListener('click', event => {
+            if (event.target === createAlbumModal) {
+                closeModal(createAlbumModal);
             }
         });
+    }
+    if (openCreateAlbumBtn) {
+        openCreateAlbumBtn.addEventListener('click', () => openModal(createAlbumModal));
+    }
+    if (closeCreateAlbumBtn) {
+        closeCreateAlbumBtn.addEventListener('click', () => closeModal(createAlbumModal));
+    }
+    if (cancelCreateAlbumBtn) {
+        cancelCreateAlbumBtn.addEventListener('click', () => closeModal(createAlbumModal));
+    }
 
-        // Clear search when pressing Escape
-        fileSearch.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                this.value = '';
-                this.dispatchEvent(new Event('input'));
+    if (movePhotoModal) {
+        movePhotoModal.addEventListener('click', event => {
+            if (event.target === movePhotoModal) {
+                closeModal(movePhotoModal);
+            }
+        });
+    }
+    if (closeMoveModalBtn) {
+        closeMoveModalBtn.addEventListener('click', () => closeModal(movePhotoModal));
+    }
+    if (cancelMoveBtn) {
+        cancelMoveBtn.addEventListener('click', () => closeModal(movePhotoModal));
+    }
+
+    document.addEventListener('click', handleGlobalClicks);
+
+    if (shareForm) {
+        shareForm.addEventListener('submit', handleShareSubmit);
+    }
+
+    if (createAlbumForm) {
+        createAlbumForm.addEventListener('submit', handleCreateAlbum);
+    }
+
+    if (movePhotoForm) {
+        movePhotoForm.addEventListener('submit', handleMovePhoto);
+    }
+
+    if (photoSearchInput && photoGrid) {
+        photoSearchInput.addEventListener('input', handlePhotoSearch);
+        photoSearchInput.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                photoSearchInput.value = '';
+                handlePhotoSearch();
             }
         });
     }
 });
 
-function handleFiles(files) {
-    for (let file of files) {
-        uploadFile(file);
-    }
-}
-
-function uploadFile(file) {
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-    if (file.size > MAX_FILE_SIZE) {
-        showNotification('File too large! Max size: 10MB', 'error');
+function handleGlobalClicks(event) {
+    const previewButton = event.target.closest('.photo-preview-btn');
+    if (previewButton) {
+        const card = previewButton.closest('[data-photo-card]');
+        if (card) {
+            openPreview(card);
+        }
         return;
     }
 
-    const formData = new FormData();   // IMPORTANT — THIS WAS MISSING
-    formData.append('file', file);
-
-    uploadProgress.classList.remove('hidden');
-
-    fetch('upload.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(async response => {
-        const contentType = response.headers.get('content-type') || '';
-
-        // If not JSON, read raw text and throw meaningful error
-        if (!contentType.includes('application/json')) {
-            const text = await response.text();
-            console.error('Non-JSON response:', text);
-            throw new Error('Server returned non-JSON response');
+    const shareButton = event.target.closest('.photo-share-btn');
+    if (shareButton) {
+        const card = shareButton.closest('[data-photo-card]');
+        if (card) {
+            currentPhotoId = parseInt(card.dataset.photoId || '0', 10);
+            shareEmailInput.value = '';
+            sharePermissionSelect.value = 'viewer';
+            openModal(shareModal);
         }
+        return;
+    }
 
-        return response.json();
-    })
-    .then(data => {
-        uploadProgress.classList.add('hidden');
-        progressBar.style.width = '0%';
-        uploadPercent.textContent = '0%';
-
-        if (data.message === 'not_authenticated') {
-            showNotification('Session expired. Redirecting...', 'error');
-            setTimeout(() => window.location.href = 'login.php', 1500);
-            return;
+    const deleteButton = event.target.closest('.photo-delete-btn');
+    if (deleteButton) {
+        const card = deleteButton.closest('[data-photo-card]');
+        if (card) {
+            deletePhoto(parseInt(card.dataset.photoId || '0', 10));
         }
+        return;
+    }
 
-        if (data.success) {
-            showNotification('File uploaded successfully!', 'success');
-            setTimeout(() => location.reload(), 1200);
-        } else {
-            showNotification('Upload failed: ' + data.message, 'error');
+    const moveButton = event.target.closest('.photo-move-btn');
+    if (moveButton) {
+        const card = moveButton.closest('[data-photo-card]');
+        if (card) {
+            movePhotoId = parseInt(card.dataset.photoId || '0', 10);
+            populateMoveAlbumOptions();
+            openModal(movePhotoModal);
         }
-    })
-    .catch(error => {
-        uploadProgress.classList.add('hidden');
-        progressBar.style.width = '0%';
-        uploadPercent.textContent = '0%';
-
-        showNotification('Upload error: ' + error.message, 'error');
-    });
-}
-
-
-function previewFile(fileId, fileName) {
-    const fileName_elem = document.getElementById('fileName');
-    const downloadLink = document.getElementById('downloadLink');
-
-    previewModal.classList.remove('modal-hidden');
-    fileName_elem.textContent = fileName;
-    downloadLink.href = `download.php?id=${fileId}`;
-
-    const ext = fileName.split('.').pop().toLowerCase();
-    const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'];
-    const textExts = ['txt', 'md', 'html', 'htm', 'css', 'js', 'php', 'json', 'xml', 'csv', 'sql', 'log'];
-    const codeExts = ['py', 'java', 'cpp', 'c', 'ts', 'rb', 'go', 'rs', 'sh', 'bash'];
-
-    if (imageExts.includes(ext)) {
-        previewContent.innerHTML = `<img src="preview-file.php?id=${fileId}" alt="${fileName}" class="max-w-full max-h-96 rounded-lg object-contain">`;
-    } else if (ext === 'pdf') {
-        previewContent.innerHTML = `<iframe src="preview-file.php?id=${fileId}" type="application/pdf" class="w-full h-96 rounded-lg border border-gray-200"></iframe>`;
-    } else if (textExts.includes(ext) || codeExts.includes(ext)) {
-        fetch(`preview-file.php?id=${fileId}`)
-            .then(response => response.text())
-            .then(content => {
-                const displayContent = content.substring(0, 5000) + (content.length > 5000 ? '\n\n... (file truncated for preview)' : '');
-                previewContent.innerHTML = `
-                    <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-auto max-h-96 text-sm"><code>${escapeHtml(displayContent)}</code></pre>
-                `;
-            })
-            .catch(err => {
-                previewContent.innerHTML = `<p class="text-gray-600">Error loading preview</p>`;
-            });
-    } else {
-        previewContent.innerHTML = `
-            <div class="text-center">
-                <i class="fas fa-file text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-600 font-semibold mb-2">Preview not available</p>
-                <p class="text-gray-500 text-sm">File type: .${ext.toUpperCase()}</p>
-                <p class="text-gray-500 text-sm mt-4">Supported preview formats:</p>
-                <ul class="text-gray-500 text-sm mt-2 space-y-1">
-                    <li>📷 Images: JPG, PNG, GIF, WebP, SVG</li>
-                    <li>📄 Documents: PDF, TXT, MD, HTML</li>
-                    <li>💻 Code: JS, Python, Java, C++, HTML, CSS</li>
-                </ul>
-                <p class="text-gray-600 font-semibold mt-4">Click download to open this file</p>
-            </div>
-        `;
     }
 }
 
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
-}
+function handleFiles(fileList) {
+    if (!fileList || fileList.length === 0) {
+        return;
+    }
 
-function closePreviewModal() {
-    previewModal.classList.add('modal-hidden');
-}
-
-function openShareModal(fileId) {
-    shareModal.classList.remove('modal-hidden');
-    document.getElementById('shareEmail').value = '';
-    document.getElementById('sharePermission').value = 'viewer';
-}
-
-function closeShareModal() {
-    shareModal.classList.add('modal-hidden');
-    currentFileId = null;
-}
-
-function handleShare(event) {
-    event.preventDefault();
-    const email = document.getElementById('shareEmail').value;
-    const permission = document.getElementById('sharePermission').value;
-
-    fetch('share-file.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `file_id=${currentFileId}&email=${email}&permission=${permission}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('File shared successfully!', 'success');
-            closeShareModal();
-        } else {
-            showNotification('Share failed: ' + data.message, 'error');
+    Array.from(fileList).forEach(file => {
+        if (!file.type.startsWith('image/')) {
+            showNotification('Only image uploads are supported.', 'error');
+            return;
         }
-    })
-    .catch(error => {
-        showNotification('Share error: ' + error, 'error');
+        if (state.photoMaxSize && file.size > state.photoMaxSize) {
+            const maxMb = Math.round((state.photoMaxSize / (1024 * 1024)) * 10) / 10;
+            showNotification(`Photo too large. Limit is ${maxMb} MB.`, 'error');
+            return;
+        }
+        uploadPhoto(file);
     });
 }
 
-function deleteFile(fileId) {
-    if (confirm('⚠️ Are you sure you want to delete this file? This action cannot be undone.')) {
-        fetch('delete-file.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'file_id=' + fileId
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification('File deleted successfully', 'success');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showNotification('Delete failed: ' + data.message, 'error');
+function uploadPhoto(file) {
+    const formData = new FormData();
+    formData.append('photo', file);
+    formData.append('album_id', state.currentAlbumId.toString());
+
+    showUploadProgress();
+
+    fetch('upload-photo.php', {
+        method: 'POST',
+        body: formData
+    })
+        .then(async response => {
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                const text = await response.text();
+                throw new Error(text || 'Unexpected response from server');
             }
+            return response.json();
+        })
+        .then(result => {
+            hideUploadProgress();
+            if (result.success) {
+                showNotification('Photo uploaded successfully.', 'success');
+                setTimeout(() => window.location.reload(), 900);
+            } else if (result.message === 'not_authenticated') {
+                showNotification('Session expired. Redirecting to login...', 'error');
+                setTimeout(() => (window.location.href = 'login.php'), 1200);
+            } else {
+                showNotification(result.message || 'Upload failed.', 'error');
+            }
+        })
+        .catch(error => {
+            hideUploadProgress();
+            showNotification(error.message || 'Upload failed.', 'error');
         });
+}
+
+function openPreview(card) {
+    const photoName = card.dataset.photoName || 'Photo';
+    const previewUrl = card.dataset.previewUrl;
+    const downloadUrl = card.dataset.downloadUrl;
+
+    if (!previewUrl || !downloadUrl) {
+        showNotification('Preview not available.', 'error');
+        return;
+    }
+
+    previewFileName.textContent = photoName;
+    previewDownloadLink.href = downloadUrl;
+    previewContent.innerHTML = `<img src="${previewUrl}&v=${Date.now()}" alt="${escapeHtml(photoName)}" class="max-w-full max-h-[75vh] object-contain rounded-xl">`;
+    openModal(previewModal);
+}
+
+function handleShareSubmit(event) {
+    event.preventDefault();
+    if (!currentPhotoId) {
+        showNotification('Select a photo to share.', 'error');
+        return;
+    }
+
+    const payload = new URLSearchParams();
+    payload.append('photo_id', currentPhotoId.toString());
+    payload.append('email', shareEmailInput.value.trim());
+    payload.append('permission', sharePermissionSelect.value);
+
+    fetch('share-photo.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: payload.toString()
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showNotification('Photo shared successfully.', 'success');
+                closeModal(shareModal);
+            } else {
+                showNotification(result.message || 'Unable to share photo.', 'error');
+            }
+        })
+        .catch(error => showNotification(error.message || 'Unable to share photo.', 'error'));
+}
+
+function deletePhoto(photoId) {
+    if (!photoId || Number.isNaN(photoId)) {
+        return;
+    }
+    if (!confirm('Delete this photo? This action cannot be undone.')) {
+        return;
+    }
+
+    const payload = new URLSearchParams();
+    payload.append('photo_id', photoId.toString());
+
+    fetch('delete-photo.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: payload.toString()
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showNotification('Photo deleted.', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showNotification(result.message || 'Unable to delete photo.', 'error');
+            }
+        })
+        .catch(error => showNotification(error.message || 'Unable to delete photo.', 'error'));
+}
+
+function handleCreateAlbum(event) {
+    event.preventDefault();
+    const albumName = (document.getElementById('albumName')?.value || '').trim();
+    if (albumName.length === 0) {
+        showNotification('Album name is required.', 'error');
+        return;
+    }
+
+    fetch('create-album.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: albumName,
+            parent_id: state.currentAlbumId
+        })
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showNotification('Album created.', 'success');
+                setTimeout(() => window.location.reload(), 900);
+            } else {
+                showNotification(result.message || 'Unable to create album.', 'error');
+            }
+        })
+        .catch(error => showNotification(error.message || 'Unable to create album.', 'error'));
+}
+
+function populateMoveAlbumOptions() {
+    if (!moveTargetAlbumSelect) {
+        return;
+    }
+    moveTargetAlbumSelect.innerHTML = '';
+
+    albumOptions.forEach(album => {
+        const option = document.createElement('option');
+        option.value = album.id;
+        let prefix = '';
+        if (album.depth > 0) {
+            prefix = `${'— '.repeat(album.depth)}`;
+        }
+        option.textContent = `${prefix}${album.name}`;
+        if (album.id === state.currentAlbumId) {
+            option.disabled = true;
+        }
+        moveTargetAlbumSelect.appendChild(option);
+    });
+
+    const availableOption = moveTargetAlbumSelect.querySelector('option:not([disabled])');
+    if (availableOption) {
+        moveTargetAlbumSelect.disabled = false;
+        moveTargetAlbumSelect.value = availableOption.value;
+    } else {
+        moveTargetAlbumSelect.disabled = true;
+    }
+}
+
+function handleMovePhoto(event) {
+    event.preventDefault();
+    if (!movePhotoId) {
+        showNotification('Select a photo to move.', 'error');
+        return;
+    }
+    if (moveTargetAlbumSelect.disabled) {
+        showNotification('Create another album to move photos.', 'error');
+        return;
+    }
+    const targetAlbumId = parseInt(moveTargetAlbumSelect.value || '0', 10);
+    if (!targetAlbumId || Number.isNaN(targetAlbumId)) {
+        showNotification('Choose a destination album.', 'error');
+        return;
+    }
+
+    fetch('move-photo.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            photo_id: movePhotoId,
+            target_album_id: targetAlbumId
+        })
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showNotification('Photo moved.', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showNotification(result.message || 'Unable to move photo.', 'error');
+            }
+        })
+        .catch(error => showNotification(error.message || 'Unable to move photo.', 'error'));
+}
+
+function handlePhotoSearch() {
+    if (!photoGrid) {
+        return;
+    }
+    const term = (photoSearchInput.value || '').toLowerCase().trim();
+    const cards = photoGrid.querySelectorAll('[data-photo-card]');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+        const name = (card.dataset.photoName || '').toLowerCase();
+        const match = term === '' || name.includes(term);
+        card.style.display = match ? '' : 'none';
+        if (match) {
+            visibleCount += 1;
+        }
+    });
+
+    if (photoCountTag) {
+        const total = cards.length;
+        photoCountTag.textContent = term === '' ? `${total} photos` : `${visibleCount} of ${total} photos`;
+    }
+
+    if (noSearchResults) {
+        noSearchResults.classList.toggle('hidden', visibleCount > 0);
+    }
+}
+
+function showUploadProgress() {
+    if (!uploadProgress) {
+        return;
+    }
+    uploadProgress.classList.remove('hidden');
+    progressBar.style.width = '100%';
+    uploadPercent.textContent = 'Uploading';
+}
+
+function hideUploadProgress() {
+    if (!uploadProgress) {
+        return;
+    }
+    uploadProgress.classList.add('hidden');
+    progressBar.style.width = '0%';
+    uploadPercent.textContent = '0%';
+}
+
+function openModal(modal) {
+    if (modal) {
+        modal.classList.remove('modal-hidden');
+    }
+}
+
+function closeModal(modal) {
+    if (modal) {
+        modal.classList.add('modal-hidden');
+    }
+    if (modal === shareModal) {
+        currentPhotoId = null;
+    }
+    if (modal === movePhotoModal) {
+        movePhotoId = null;
     }
 }
 
 function showNotification(message, type) {
-    const notification = document.createElement('div');
-    notification.className = `fixed top-6 right-6 px-6 py-4 rounded-lg shadow-lg flex items-center space-x-2 text-white font-semibold z-50 animate-bounce ${
-        type === 'success' ? 'bg-green-500' : 'bg-red-500'
-    }`;
-    notification.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-        <span>${message}</span>
-    `;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
+    const toast = document.createElement('div');
+    toast.className = `fixed top-6 right-6 px-5 py-3 rounded-lg shadow-lg flex items-center space-x-2 text-white font-semibold z-50 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
+    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i><span>${escapeHtml(message)}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3200);
+}
+
+function escapeHtml(value) {
+    return (value || '').replace(/[&<>"']/g, char => {
+        switch (char) {
+            case '&':
+                return '&amp;';
+            case '<':
+                return '&lt;';
+            case '>':
+                return '&gt;';
+            case '"':
+                return '&quot;';
+            case "'":
+                return '&#039;';
+            default:
+                return char;
+        }
+    });
 }
