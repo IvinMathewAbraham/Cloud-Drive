@@ -3,7 +3,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    container_name: minicld_app
+    container_name: photodrive_app
     ports:
       - "5003:80"
     volumes:
@@ -13,9 +13,9 @@ services:
 
     environment:
       - DB_HOST=db
-      - DB_USER=mini_user
-      - DB_PASSWORD=mini_pass
-      - DB_NAME=mini_drive
+      - DB_USER=photo_user
+      - DB_PASSWORD=photo_pass
+      - DB_NAME=photo_drive
       - APP_URL=http://localhost:5003
     depends_on:
       db:
@@ -23,13 +23,13 @@ services:
 
   db:
     image: mysql:8.0
-    container_name: minicld_db
+    container_name: photodrive_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: mini_pass
-      MYSQL_DATABASE: mini_drive
-      MYSQL_USER: mini_user
-      MYSQL_PASSWORD: mini_pass
+      MYSQL_ROOT_PASSWORD: photo_pass
+      MYSQL_DATABASE: photo_drive
+      MYSQL_USER: photo_user
+      MYSQL_PASSWORD: photo_pass
     ports:
       - "3307:3306"
     volumes:
